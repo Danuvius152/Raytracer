@@ -1,7 +1,11 @@
 on:
   push:
-    tags:
-      - "*"
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
 
 name: CI # Continuous Integration
 
@@ -30,7 +34,7 @@ jobs:
         name: Lint with Clippy 🔧
         with:
           command: clippy
-          args: --all-targets --all-features -- -D warnings
+          args: --all-targets --all-features # -- -D warnings
   build:
     name: Build and Upload
     runs-on: ubuntu-latest
