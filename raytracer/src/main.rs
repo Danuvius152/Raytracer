@@ -20,21 +20,104 @@ use std::{fs::File, process::exit, rc::Rc};
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 
+pub fn random_scene() -> HittableList {
+    let mut world: HittableList = Default::default();
+
+    let ground_material = Rc::new(Lambertian {
+        albedo: Vec3::new(0.5, 0.5, 0.5),
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(0., -1000., 0.),
+        r: 1000.,
+        mat_ptr: ground_material,
+    });
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = utility::random_double(0., 1.);
+            let center = Vec3::new(
+                a as f64 + 0.9 * utility::random_double(0., 1.),
+                0.2,
+                b as f64 + 0.9 * utility::random_double(0., 1.),
+            );
+            if (center - Vec3::new(4., 0.2, 0.)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    //diffuse
+                    let sphere_material = Rc::new(Lambertian {
+                        albedo: Vec3::elemul(Vec3::random(0., 1.), Vec3::random(0., 1.)),
+                    });
+                    world.add(sphere::Sphere {
+                        center,
+                        r: 0.2,
+                        mat_ptr: sphere_material,
+                    });
+                } else if choose_mat < 0.95 {
+                    //metal
+                    let sphere_material = Rc::new(Metal {
+                        albedo: Vec3::random(0.5, 1.),
+                        fuzz: utility::random_double(0., 0.5),
+                    });
+                    world.add(sphere::Sphere {
+                        center,
+                        r: 0.2,
+                        mat_ptr: sphere_material,
+                    });
+                } else {
+                    //glass
+                    let sphere_material = Rc::new(Dielectric { ref_idx: 1.5 });
+                    world.add(sphere::Sphere {
+                        center,
+                        r: 0.2,
+                        mat_ptr: sphere_material,
+                    });
+                }
+            }
+        }
+    }
+    let sphere_material = Rc::new(Dielectric { ref_idx: 1.5 });
+    world.add(sphere::Sphere {
+        center: Vec3::new(0., 1., 0.),
+        r: 1.,
+        mat_ptr: sphere_material,
+    });
+
+    let sphere_material = Rc::new(Lambertian {
+        albedo: Vec3::new(0.4, 0.2, 0.1),
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(-4., 1., 0.),
+        r: 1.,
+        mat_ptr: sphere_material,
+    });
+
+    let sphere_material = Rc::new(Metal {
+        albedo: Vec3::new(0.7, 0.6, 0.5),
+        fuzz: 0.,
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(4., 1., 0.),
+        r: 1.,
+        mat_ptr: sphere_material,
+    });
+
+    world
+}
+
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
                                                     // Image
     let aspect_ratio = 16.0 / 9.0;
-    let width = 400;
+    let width = 1920;
     let height = (width as f64 / aspect_ratio) as u32;
-    let quality = 60; // From 0 to 100
+    let quality = 100; // From 0 to 100
     let path = "output/output.jpg";
 
-    let lookfrom = Vec3::new(3., 3., 2.);
-    let lookat = Vec3::new(0., 0., -1.);
+    let lookfrom = Vec3::new(13., 2., 3.);
+    let lookat = Vec3::new(0., 0., 0.);
     let vup = Vec3::new(0., 1., 0.);
-    let focus_dist = (lookfrom - lookat).length();
-    let aperture = 2.0;
+    let focus_dist = 10.0; //(lookfrom - lookat).length();
+    let aperture = 0.1;
     let cam: Camera = Camera::new(
         lookfrom,
         lookat,
@@ -48,47 +131,47 @@ fn main() {
     let max_depth = 50;
 
     //let r = (PI / 4.).cos();
-    let mut world: HittableList = Default::default();
-    let material_ground = Rc::new(Lambertian {
-        albedo: Vec3::new(0.8, 0.8, 0.),
-    });
-    let material_center = Rc::new(Lambertian {
-        albedo: Vec3::new(0.1, 0.2, 0.5),
-    });
-    let material_left = Rc::new(Dielectric { ref_idx: 1.5 });
+    let world: HittableList = random_scene();
+    // let material_ground = Rc::new(Lambertian {
+    //     albedo: Vec3::new(0.8, 0.8, 0.),
+    // });
+    // let material_center = Rc::new(Lambertian {
+    //     albedo: Vec3::new(0.1, 0.2, 0.5),
+    // });
+    //let material_left = Rc::new(Dielectric { ref_idx: 1.5 });
     // let material_left = Rc::new(Metal {
     //     albedo: Vec3::new(0.8, 0.8, 0.8),
     //     fuzz: 0.3,
     // });
-    let material_right = Rc::new(Metal {
-        albedo: Vec3::new(0.8, 0.6, 0.2),
-        fuzz: 0.,
-    });
-    world.add(sphere::Sphere {
-        center: Vec3::new(0., 0., -1.),
-        r: 0.5,
-        mat_ptr: material_center,
-    });
-    world.add(sphere::Sphere {
-        center: Vec3::new(0., -100.5, -1.),
-        r: 100.,
-        mat_ptr: material_ground,
-    });
-    world.add(sphere::Sphere {
-        center: Vec3::new(1., 0., -1.),
-        r: 0.5,
-        mat_ptr: material_right,
-    });
-    world.add(sphere::Sphere {
-        center: Vec3::new(-1., 0., -1.),
-        r: 0.5,
-        mat_ptr: material_left.clone(),
-    });
-    world.add(sphere::Sphere {
-        center: Vec3::new(-1., 0., -1.),
-        r: -0.45,
-        mat_ptr: material_left,
-    });
+    // let material_right = Rc::new(Metal {
+    //     albedo: Vec3::new(0.8, 0.6, 0.2),
+    //     fuzz: 0.,
+    // });
+    // world.add(sphere::Sphere {
+    //     center: Vec3::new(0., 0., -1.),
+    //     r: 0.5,
+    //     mat_ptr: material_center,
+    // });
+    // world.add(sphere::Sphere {
+    //     center: Vec3::new(0., -100.5, -1.),
+    //     r: 100.,
+    //     mat_ptr: material_ground,
+    // });
+    // world.add(sphere::Sphere {
+    //     center: Vec3::new(1., 0., -1.),
+    //     r: 0.5,
+    //     mat_ptr: material_right,
+    // });
+    // world.add(sphere::Sphere {
+    //     center: Vec3::new(-1., 0., -1.),
+    //     r: 0.5,
+    //     mat_ptr: material_left.clone(),
+    // });
+    // world.add(sphere::Sphere {
+    //     center: Vec3::new(-1., 0., -1.),
+    //     r: -0.45,
+    //     mat_ptr: material_left,
+    // });
 
     println!(
         "Image size: {}\nJPEG quality: {}",
