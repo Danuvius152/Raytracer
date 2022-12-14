@@ -1,11 +1,23 @@
 #![allow(dead_code)]
-use crate::{hittable::HitRecord, hittable::Hittable, ray::Ray, vec::Vec3};
+use std::rc::Rc;
 
-#[derive(Copy, Clone)]
+use crate::{hittable::HitRecord, hittable::Hittable, material::Material, ray::Ray, vec::Vec3};
+
+#[derive(Clone)]
 pub struct Sphere {
     pub center: Vec3, //球心
     pub r: f64,
+    pub mat_ptr: Rc<dyn Material>,
 }
+// pub struct Sphere<T>
+// where
+//     T: Material,
+// {
+//     pub center: Vec3,
+//     pub radius: f64,
+//     pub mat: T, //不保存指针，直接保存结构体
+// }
+
 impl Hittable for Sphere {
     fn hit(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = ray.orig - self.center;
@@ -29,6 +41,7 @@ impl Hittable for Sphere {
                 p: ray.at(root),
                 normal: Vec3::new(0., 0., 0.),
                 front_face: true,
+                mat_ptr: self.mat_ptr.clone(),
             };
             let outward_normal = (rec.p - self.center) / self.r;
             rec.set_face_normal(ray, outward_normal);

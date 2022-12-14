@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use crate::utility;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
@@ -37,7 +39,6 @@ impl Vec3 {
     }
 
     pub fn elemul(self, other: Self) -> Self {
-        //&  ???
         Self {
             x: self.x * other.x,
             y: self.y * other.y,
@@ -45,12 +46,45 @@ impl Vec3 {
         }
     }
     pub fn cross(op1: Self, op2: Self) -> Self {
-        //&  ???
         Self {
             x: op1.y * op2.z - op1.z * op2.y,
             y: op1.z * op2.x - op1.x * op2.z,
             z: op1.x * op2.y - op1.y * op2.x,
         }
+    }
+    pub fn random(min: f64, max: f64) -> Self {
+        Self {
+            x: utility::random_double(min, max),
+            y: utility::random_double(min, max),
+            z: utility::random_double(min, max),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random(-1., 1.);
+            if p.length() < 1. {
+                return p;
+            }
+        }
+    }
+
+    pub fn random_unit_sphere() -> Self {
+        Vec3::unit(Vec3::random_in_unit_sphere())
+    }
+
+    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if in_unit_sphere * normal > 0. {
+            //和法线在同一个半球
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
+    }
+
+    pub fn reflect(v: Self, n: Self) -> Self {
+        v - n * (v * n) * 2.
     }
 }
 

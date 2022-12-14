@@ -24,10 +24,9 @@ pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
 }
 pub fn get_pixel_color(color: Vec3, samples_per_pixel: u32) -> [u8; 3] {
     let scale = 1. / samples_per_pixel as f64;
-    let r = color.x * scale;
-    let g = color.y * scale;
-    let b = color.z * scale;
-
+    let r = (color.x * scale).sqrt();
+    let g = (color.y * scale).sqrt();
+    let b = (color.z * scale).sqrt();
     [
         (clamp(r, 0., 0.999) * 256.).floor() as u8,
         (clamp(g, 0., 0.999) * 256.).floor() as u8,

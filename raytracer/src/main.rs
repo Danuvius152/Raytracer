@@ -1,12 +1,19 @@
 mod camera;
 mod hittable;
+mod material;
 mod ray;
 mod sphere;
 mod utility;
 mod vec;
-use crate::{camera::Camera, hittable::HittableList, ray::Ray, vec::Vec3};
+use crate::{
+    camera::Camera,
+    hittable::HittableList,
+    material::{Lambertian, Metal},
+    ray::Ray,
+    vec::Vec3,
+};
 
-use std::{fs::File, process::exit};
+use std::{fs::File, process::exit, rc::Rc};
 
 use image::{ImageBuffer, RgbImage};
 
@@ -25,15 +32,42 @@ fn main() {
 
     let cam: Camera = Camera::new();
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     let mut world: HittableList = Default::default();
+    let material_center = Rc::new(Lambertian {
+        albedo: Vec3::new(0.7, 0.3, 0.3),
+    });
+    let material_ground = Rc::new(Lambertian {
+        albedo: Vec3::new(0.8, 0.8, 0.),
+    });
+    let material_right = Rc::new(Metal {
+        albedo: Vec3::new(0.8, 0.6, 0.2),
+        fuzz: 1.,
+    });
+    let material_left = Rc::new(Metal {
+        albedo: Vec3::new(0.8, 0.8, 0.8),
+        fuzz: 0.3,
+    });
     world.add(sphere::Sphere {
         center: Vec3::new(0., 0., -1.),
         r: 0.5,
+        mat_ptr: material_center,
     });
     world.add(sphere::Sphere {
         center: Vec3::new(0., -100.5, -1.),
         r: 100.,
+        mat_ptr: material_ground,
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(1., 0., -1.),
+        r: 0.5,
+        mat_ptr: material_right,
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(-1., 0., -1.),
+        r: 0.5,
+        mat_ptr: material_left,
     });
 
     println!(
@@ -64,7 +98,7 @@ fn main() {
                 let u = (x as f64 + utility::random_double(0., 1.)) / width as f64;
                 let v = (y as f64 + utility::random_double(0., 1.)) / height as f64;
                 let r = Camera::get_ray(cam, u, v);
-                color += Ray::ray_color(r, &world);
+                color += Ray::ray_color(r, &world, max_depth);
                 i += 1;
             }
             let pixel_color = utility::get_pixel_color(color, samples_per_pixel);

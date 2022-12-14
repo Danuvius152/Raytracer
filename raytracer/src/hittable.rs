@@ -1,13 +1,15 @@
 #![allow(dead_code)]
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec::Vec3;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,      //碰撞点
     pub normal: Vec3, //法向量
     pub t: f64,
-    pub front_face: bool, //方向是否为外侧
+    pub front_face: bool,                   //方向是否为外侧
+    pub mat_ptr: std::rc::Rc<dyn Material>, //材料
 }
 
 impl HitRecord {
