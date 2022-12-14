@@ -8,14 +8,14 @@ mod vec;
 use crate::{
     camera::Camera,
     hittable::HittableList,
-    material::{Lambertian, Metal},
+    material::{Dielectric, Lambertian, Metal},
     ray::Ray,
     vec::Vec3,
 };
 
-use std::{fs::File, process::exit, rc::Rc};
-
 use image::{ImageBuffer, RgbImage};
+
+use std::{fs::File, process::exit, rc::Rc};
 
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -30,24 +30,39 @@ fn main() {
     let quality = 60; // From 0 to 100
     let path = "output/output.jpg";
 
-    let cam: Camera = Camera::new();
+    let lookfrom = Vec3::new(3., 3., 2.);
+    let lookat = Vec3::new(0., 0., -1.);
+    let vup = Vec3::new(0., 1., 0.);
+    let focus_dist = (lookfrom - lookat).length();
+    let aperture = 2.0;
+    let cam: Camera = Camera::new(
+        lookfrom,
+        lookat,
+        vup,
+        20.,
+        aspect_ratio,
+        aperture,
+        focus_dist,
+    );
     let samples_per_pixel = 100;
     let max_depth = 50;
 
+    //let r = (PI / 4.).cos();
     let mut world: HittableList = Default::default();
-    let material_center = Rc::new(Lambertian {
-        albedo: Vec3::new(0.7, 0.3, 0.3),
-    });
     let material_ground = Rc::new(Lambertian {
         albedo: Vec3::new(0.8, 0.8, 0.),
     });
+    let material_center = Rc::new(Lambertian {
+        albedo: Vec3::new(0.1, 0.2, 0.5),
+    });
+    let material_left = Rc::new(Dielectric { ref_idx: 1.5 });
+    // let material_left = Rc::new(Metal {
+    //     albedo: Vec3::new(0.8, 0.8, 0.8),
+    //     fuzz: 0.3,
+    // });
     let material_right = Rc::new(Metal {
         albedo: Vec3::new(0.8, 0.6, 0.2),
-        fuzz: 1.,
-    });
-    let material_left = Rc::new(Metal {
-        albedo: Vec3::new(0.8, 0.8, 0.8),
-        fuzz: 0.3,
+        fuzz: 0.,
     });
     world.add(sphere::Sphere {
         center: Vec3::new(0., 0., -1.),
@@ -67,6 +82,11 @@ fn main() {
     world.add(sphere::Sphere {
         center: Vec3::new(-1., 0., -1.),
         r: 0.5,
+        mat_ptr: material_left.clone(),
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(-1., 0., -1.),
+        r: -0.45,
         mat_ptr: material_left,
     });
 

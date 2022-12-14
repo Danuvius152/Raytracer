@@ -13,6 +13,21 @@ pub fn random_double(min: f64, max: f64) -> f64 {
     min + rng.gen::<f64>() * (max - min)
 }
 
+pub fn fmin(a: f64, b: f64) -> f64 {
+    if a <= b {
+        a
+    } else {
+        b
+    }
+}
+
+pub fn fmax(a: f64, b: f64) -> f64 {
+    if a <= b {
+        b
+    } else {
+        a
+    }
+}
 pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
     if x < min {
         return min;

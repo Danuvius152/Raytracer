@@ -69,6 +69,19 @@ impl Vec3 {
         }
     }
 
+    pub fn random_in_unit_disk() -> Self {
+        loop {
+            let p = Vec3::new(
+                utility::random_double(-1., 1.),
+                utility::random_double(-1., 1.),
+                0.,
+            );
+            if p.length() < 1. {
+                return p;
+            }
+        }
+    }
+
     pub fn random_unit_sphere() -> Self {
         Vec3::unit(Vec3::random_in_unit_sphere())
     }
@@ -85,6 +98,13 @@ impl Vec3 {
 
     pub fn reflect(v: Self, n: Self) -> Self {
         v - n * (v * n) * 2.
+    }
+
+    pub fn refract(uv: Self, n: Self, refraction_ratio: f64) -> Self {
+        let cos = utility::fmin(-uv * n, 1.);
+        let r_out_parallel = (uv + n * cos) * refraction_ratio;
+        let r_out_perp = -n * (utility::fmax(1.0 - r_out_parallel.squared_length(), 0.)).sqrt();
+        r_out_parallel + r_out_perp
     }
 }
 
