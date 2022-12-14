@@ -1,7 +1,10 @@
+mod camera;
+mod hittable;
 mod ray;
+mod sphere;
+mod utility;
 mod vec;
-use crate::ray::Ray;
-use crate::vec::Vec3;
+use crate::{camera::Camera, hittable::HittableList, ray::Ray, vec::Vec3};
 
 use std::{fs::File, process::exit};
 
@@ -20,16 +23,18 @@ fn main() {
     let quality = 60; // From 0 to 100
     let path = "output/output.jpg";
 
-    // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
+    let cam: Camera = Camera::new();
+    let samples_per_pixel = 100;
 
-    let origin = Vec3::new(0., 0., 0.);
-    let horizontal = Vec3::new(viewport_width, 0., 0.);
-    let vertical = Vec3::new(0., viewport_height, 0.);
-    let lower_left_corner =
-        origin - horizontal / 2. - vertical / 2. - Vec3::new(0., 0., focal_length);
+    let mut world: HittableList = Default::default();
+    world.add(sphere::Sphere {
+        center: Vec3::new(0., 0., -1.),
+        r: 0.5,
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(0., -100.5, -1.),
+        r: 100.,
+    });
 
     println!(
         "Image size: {}\nJPEG quality: {}",
@@ -53,18 +58,16 @@ fn main() {
     // Generate image
     for y in (0..height).rev() {
         for x in 0..width {
-            let u = x as f64 / width as f64;
-            let v = y as f64 / height as f64;
-            let r = Ray {
-                orig: origin,
-                dir: lower_left_corner + horizontal * u + vertical * v - origin,
-            };
-            let color = Ray::ray_color(r);
-            let pixel_color = [
-                (color.x * 255.).floor() as u8,
-                (color.y * 255.).floor() as u8,
-                (color.z * 255.).floor() as u8,
-            ];
+            let mut color = Vec3::new(0., 0., 0.);
+            let mut i = 0;
+            while i < samples_per_pixel {
+                let u = (x as f64 + utility::random_double(0., 1.)) / width as f64;
+                let v = (y as f64 + utility::random_double(0., 1.)) / height as f64;
+                let r = Camera::get_ray(cam, u, v);
+                color += Ray::ray_color(r, &world);
+                i += 1;
+            }
+            let pixel_color = utility::get_pixel_color(color, samples_per_pixel);
             let pixel = img.get_pixel_mut(x, height - y - 1);
             *pixel = image::Rgb(pixel_color);
             progress.inc(1);

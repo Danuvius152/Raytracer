@@ -1,6 +1,6 @@
 #![allow(dead_code)]
-use crate::vec::Vec3;
-
+use crate::{hittable::Hittable, vec::Vec3};
+use std::f64::INFINITY;
 #[derive(Copy, Clone)]
 pub struct Ray {
     pub dir: Vec3,  //方向
@@ -18,24 +18,12 @@ impl Ray {
 }
 
 impl Ray {
-    pub fn hit_sphere(center: Vec3, r: f64, ray: Ray) -> f64 {
-        let oc = ray.orig - center;
-        let a = ray.dir * ray.dir;
-        let half_b = ray.dir * oc;
-        let c = oc * oc - r * r;
-        let discriminant = half_b * half_b - a * c;
-        if discriminant < 0. {
-            -1.
-        } else {
-            (-half_b - discriminant.sqrt()) / a
-        }
-    }
-
-    pub fn ray_color(self) -> Vec3 {
-        let t = Ray::hit_sphere(Vec3::new(0., 0., -1.), 0.5, self);
-        if t > 0. {
-            let n = Vec3::unit(self.at(t) - Vec3::new(0., 0., -1.)); //求出法向量
-            Vec3::new(n.x + 1., n.y + 1., n.z + 1.) * 0.5
+    pub fn ray_color<T>(self, world: &T) -> Vec3
+    where
+        T: Hittable + 'static,
+    {
+        if let Some(tmp_rec) = world.hit(self, 0., INFINITY) {
+            (Vec3::new(1., 1., 1.) + tmp_rec.normal) * 0.5
         } else {
             let unit_direction = Vec3::unit(self.dir);
             let t = 0.5 * (unit_direction.y + 1.0);
