@@ -2,7 +2,7 @@
 use rand::Rng;
 use std::f64::consts::PI;
 
-use crate::vec::Vec3;
+use crate::basic::vec::Vec3;
 
 pub fn degree_to_radian(degree: f64) -> f64 {
     degree * PI / 180.

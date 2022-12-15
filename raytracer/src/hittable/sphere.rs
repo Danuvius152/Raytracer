@@ -1,7 +1,11 @@
 #![allow(dead_code)]
 use std::rc::Rc;
 
-use crate::{hittable::HitRecord, hittable::Hittable, material::Material, ray::Ray, vec::Vec3};
+use crate::{
+    basic::{ray::Ray, vec::Vec3},
+    hittable::{hittable::HitRecord, hittable::Hittable},
+    material::material::Material,
+};
 
 #[derive(Clone)]
 pub struct Sphere {

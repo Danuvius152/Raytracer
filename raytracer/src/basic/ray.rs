@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::{hittable::Hittable, vec::Vec3};
+use crate::{basic::vec::Vec3, hittable::hittable::Hittable};
 use std::f64::INFINITY;
 #[derive(Copy, Clone)]
 pub struct Ray {

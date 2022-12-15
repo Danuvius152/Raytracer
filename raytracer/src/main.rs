@@ -1,16 +1,12 @@
-mod camera;
 mod hittable;
 mod material;
-mod ray;
-mod sphere;
+
+mod basic;
 mod utility;
-mod vec;
 use crate::{
-    camera::Camera,
-    hittable::HittableList,
-    material::{Dielectric, Lambertian, Metal},
-    ray::Ray,
-    vec::Vec3,
+    basic::{camera::Camera, ray::Ray, vec::Vec3},
+    hittable::{hittable::HittableList, sphere},
+    material::material::{Dielectric, Lambertian, Metal},
 };
 
 use image::{ImageBuffer, RgbImage};
@@ -108,9 +104,9 @@ fn main() {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
                                                     // Image
     let aspect_ratio = 16.0 / 9.0;
-    let width = 1920;
+    let width = 400;
     let height = (width as f64 / aspect_ratio) as u32;
-    let quality = 100; // From 0 to 100
+    let quality = 60; // From 0 to 100
     let path = "output/output.jpg";
 
     let lookfrom = Vec3::new(13., 2., 3.);

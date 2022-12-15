@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-use crate::material::Material;
-use crate::ray::Ray;
-use crate::vec::Vec3;
+use crate::basic::ray::Ray;
+use crate::basic::vec::Vec3;
+use crate::material::material::Material;
 
 #[derive(Clone)]
 pub struct HitRecord {

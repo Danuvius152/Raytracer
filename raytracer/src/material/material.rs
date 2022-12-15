@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 
-use crate::{hittable::HitRecord, ray::Ray, utility, vec::Vec3};
+use crate::{
+    basic::{ray::Ray, vec::Vec3},
+    hittable::hittable::HitRecord,
+    utility,
+};
 
 pub struct ScatterRecord {
     pub attenuation: Vec3,
