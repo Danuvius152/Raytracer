@@ -1,12 +1,11 @@
+mod basic;
 mod hittable;
 mod material;
-
-mod basic;
 mod utility;
 use crate::{
     basic::{camera::Camera, ray::Ray, vec::Vec3},
-    hittable::{hittable::HittableList, sphere},
-    material::material::{Dielectric, Lambertian, Metal},
+    hittable::{sphere, HittableList},
+    material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal},
 };
 
 use image::{ImageBuffer, RgbImage};
@@ -42,8 +41,11 @@ pub fn random_scene() -> HittableList {
                     let sphere_material = Rc::new(Lambertian {
                         albedo: Vec3::elemul(Vec3::random(0., 1.), Vec3::random(0., 1.)),
                     });
-                    world.add(sphere::Sphere {
-                        center,
+                    world.add(sphere::MovingSphere {
+                        center0: center,
+                        center1: center + Vec3::new(0., utility::random_double(0., 0.5), 0.),
+                        time0: 0.,
+                        time1: 1.,
                         r: 0.2,
                         mat_ptr: sphere_material,
                     });
@@ -122,6 +124,8 @@ fn main() {
         aspect_ratio,
         aperture,
         focus_dist,
+        0.,
+        1.,
     );
     let samples_per_pixel = 100;
     let max_depth = 50;

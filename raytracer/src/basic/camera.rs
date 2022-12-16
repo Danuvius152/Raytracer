@@ -13,6 +13,8 @@ pub struct Camera {
     pub v: Vec3,
     pub w: Vec3,
     pub lens_radius: f64,
+    pub time0: f64, // shutter open/close times
+    pub time1: f64,
 }
 impl Camera {
     pub fn new(
@@ -23,6 +25,8 @@ impl Camera {
         aspect: f64,
         aperture: f64,
         focus_dist: f64,
+        time0: f64,
+        time1: f64,
     ) -> Camera {
         let theta = utility::degree_to_radian(vfov);
         let half_height = (theta / 2.).tan();
@@ -40,6 +44,8 @@ impl Camera {
             v,
             w,
             lens_radius: aperture / 2.,
+            time0,
+            time1,
         }
     }
 
@@ -51,6 +57,7 @@ impl Camera {
                 - self.origin
                 - offset),
             orig: (self.origin + offset),
+            time: utility::random_double(self.time0, self.time1),
         }
     }
 }

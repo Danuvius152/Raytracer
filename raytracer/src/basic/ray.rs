@@ -1,15 +1,15 @@
-#![allow(dead_code)]
-use crate::{basic::vec::Vec3, hittable::hittable::Hittable};
+use crate::{basic::vec::Vec3, hittable::Hittable};
 use std::f64::INFINITY;
 #[derive(Copy, Clone)]
 pub struct Ray {
     pub dir: Vec3,  //方向
     pub orig: Vec3, //原点
+    pub time: f64,  //时间
 }
 
 impl Ray {
-    pub fn new(orig: Vec3, dir: Vec3) -> Self {
-        Self { dir, orig }
+    pub fn new(orig: Vec3, dir: Vec3, time: f64) -> Self {
+        Self { dir, orig, time }
     }
 
     pub fn at(&self, t: f64) -> Vec3 {
