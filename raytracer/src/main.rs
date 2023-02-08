@@ -1,6 +1,8 @@
 mod basic;
 mod hittable;
 mod material;
+mod optimization;
+mod texture;
 mod utility;
 use crate::{
     basic::{camera::Camera, ray::Ray, vec::Vec3},
@@ -9,18 +11,44 @@ use crate::{
 };
 
 use image::{ImageBuffer, RgbImage};
+use texture::{checker::Checker, solid_color::SolidColor};
 
 use std::{fs::File, process::exit, rc::Rc};
 
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 
+fn two_spheres() -> HittableList {
+    let mut world: HittableList = Default::default();
+    let checker = Rc::new(Checker {
+        odd: Rc::new(SolidColor::new(0.2, 0.3, 0.1)),
+        even: Rc::new(SolidColor::new(0.9, 0.9, 0.9)),
+    });
+    let mat1 = Rc::new(Lambertian { albedo: checker });
+
+    world.add(sphere::Sphere {
+        center: Vec3::new(0., -10., 0.),
+        r: 10.,
+        mat_ptr: mat1.clone(),
+    });
+    world.add(sphere::Sphere {
+        center: Vec3::new(0., 10., 0.),
+        r: 10.,
+        mat_ptr: mat1,
+    });
+
+    world
+}
+
 pub fn random_scene() -> HittableList {
     let mut world: HittableList = Default::default();
 
-    let ground_material = Rc::new(Lambertian {
-        albedo: Vec3::new(0.5, 0.5, 0.5),
-    });
+    let checker = Rc::new(Checker {
+        odd: Rc::new(SolidColor::new(0.2, 0.3, 0.1)),
+        even: Rc::new(SolidColor::new(0.9, 0.9, 0.9)),
+    }); //棋盘状的纹理
+
+    let ground_material = Rc::new(Lambertian { albedo: checker });
     world.add(sphere::Sphere {
         center: Vec3::new(0., -1000., 0.),
         r: 1000.,
@@ -39,7 +67,9 @@ pub fn random_scene() -> HittableList {
                 if choose_mat < 0.8 {
                     //diffuse
                     let sphere_material = Rc::new(Lambertian {
-                        albedo: Vec3::elemul(Vec3::random(0., 1.), Vec3::random(0., 1.)),
+                        albedo: Rc::new(SolidColor {
+                            color_value: Vec3::elemul(Vec3::random(0., 1.), Vec3::random(0., 1.)),
+                        }),
                     });
                     world.add(sphere::MovingSphere {
                         center0: center,
@@ -80,7 +110,9 @@ pub fn random_scene() -> HittableList {
     });
 
     let sphere_material = Rc::new(Lambertian {
-        albedo: Vec3::new(0.4, 0.2, 0.1),
+        albedo: Rc::new(SolidColor {
+            color_value: Vec3::new(0.4, 0.2, 0.1),
+        }),
     });
     world.add(sphere::Sphere {
         center: Vec3::new(-4., 1., 0.),
@@ -130,48 +162,7 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 50;
 
-    //let r = (PI / 4.).cos();
-    let world: HittableList = random_scene();
-    // let material_ground = Rc::new(Lambertian {
-    //     albedo: Vec3::new(0.8, 0.8, 0.),
-    // });
-    // let material_center = Rc::new(Lambertian {
-    //     albedo: Vec3::new(0.1, 0.2, 0.5),
-    // });
-    //let material_left = Rc::new(Dielectric { ref_idx: 1.5 });
-    // let material_left = Rc::new(Metal {
-    //     albedo: Vec3::new(0.8, 0.8, 0.8),
-    //     fuzz: 0.3,
-    // });
-    // let material_right = Rc::new(Metal {
-    //     albedo: Vec3::new(0.8, 0.6, 0.2),
-    //     fuzz: 0.,
-    // });
-    // world.add(sphere::Sphere {
-    //     center: Vec3::new(0., 0., -1.),
-    //     r: 0.5,
-    //     mat_ptr: material_center,
-    // });
-    // world.add(sphere::Sphere {
-    //     center: Vec3::new(0., -100.5, -1.),
-    //     r: 100.,
-    //     mat_ptr: material_ground,
-    // });
-    // world.add(sphere::Sphere {
-    //     center: Vec3::new(1., 0., -1.),
-    //     r: 0.5,
-    //     mat_ptr: material_right,
-    // });
-    // world.add(sphere::Sphere {
-    //     center: Vec3::new(-1., 0., -1.),
-    //     r: 0.5,
-    //     mat_ptr: material_left.clone(),
-    // });
-    // world.add(sphere::Sphere {
-    //     center: Vec3::new(-1., 0., -1.),
-    //     r: -0.45,
-    //     mat_ptr: material_left,
-    // });
+    let world: HittableList = two_spheres();
 
     println!(
         "Image size: {}\nJPEG quality: {}",

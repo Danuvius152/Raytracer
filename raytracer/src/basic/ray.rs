@@ -1,6 +1,6 @@
 use crate::{basic::vec::Vec3, hittable::Hittable};
 use std::f64::INFINITY;
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Ray {
     pub dir: Vec3,  //方向
     pub orig: Vec3, //原点

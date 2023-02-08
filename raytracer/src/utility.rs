@@ -13,6 +13,12 @@ pub fn random_double(min: f64, max: f64) -> f64 {
     min + rng.gen::<f64>() * (max - min)
 }
 
+pub fn random_int(min: i32, max: i32) -> i32 {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..max + 1)
+    // 左闭右开，即 [min, max + 1)
+}
+
 pub fn fmin(a: f64, b: f64) -> f64 {
     if a <= b {
         a

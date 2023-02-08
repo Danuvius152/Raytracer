@@ -3,7 +3,7 @@ use crate::{
     utility,
 };
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Camera {
     pub origin: Vec3,
     pub lower_left_corner: Vec3,

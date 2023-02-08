@@ -1,11 +1,11 @@
 #![allow(dead_code)]
-use std::rc::Rc;
-
 use crate::{
     basic::{ray::Ray, vec::Vec3},
     hittable::{HitRecord, Hittable},
     material::Material,
+    optimization::aabb::AABB,
 };
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Sphere {
@@ -18,7 +18,7 @@ pub struct Sphere {
 //     T: Material,
 // {
 //     pub center: Vec3,
-//     pub radius: f64,
+//     pub r: f64,
 //     pub mat: T, //不保存指针，直接保存结构体
 // }
 
@@ -46,12 +46,21 @@ impl Hittable for Sphere {
                 normal: Vec3::new(0., 0., 0.),
                 front_face: true,
                 mat_ptr: self.mat_ptr.clone(),
+                u: 0.,
+                v: 0.,
             };
             let outward_normal = (rec.p - self.center) / self.r;
             rec.set_face_normal(ray, outward_normal);
 
             Option::Some(rec)
         }
+    }
+
+    fn bounding_box(&self, _t0: f64, _t1: f64) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - Vec3::new(self.r, self.r, self.r),
+            max: self.center + Vec3::new(self.r, self.r, self.r),
+        })
     }
 }
 
@@ -95,11 +104,27 @@ impl Hittable for MovingSphere {
                 normal: Vec3::new(0., 0., 0.),
                 front_face: true,
                 mat_ptr: self.mat_ptr.clone(),
+                u: 0.,
+                v: 0.,
             };
             let outward_normal = (rec.p - MovingSphere::center(&self, ray.time)) / self.r;
             rec.set_face_normal(ray, outward_normal);
 
             Option::Some(rec)
         }
+    }
+
+    fn bounding_box(&self, _t0: f64, _t1: f64) -> Option<AABB> {
+        // 取始末位置的两个球，找到包裹的空间
+        let box0 = AABB {
+            min: self.center(_t0) - Vec3::new(self.r, self.r, self.r),
+            max: self.center(_t0) + Vec3::new(self.r, self.r, self.r),
+        };
+        let box1 = AABB {
+            min: self.center(_t1) - Vec3::new(self.r, self.r, self.r),
+            max: self.center(_t1) + Vec3::new(self.r, self.r, self.r),
+        };
+
+        Some(AABB::surrounding_box(box0, box1))
     }
 }
