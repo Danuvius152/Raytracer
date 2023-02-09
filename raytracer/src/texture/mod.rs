@@ -1,5 +1,6 @@
 use crate::basic::vec::Vec3;
 pub mod checker;
+pub mod perlin;
 pub mod solid_color;
 
 pub trait Texture {

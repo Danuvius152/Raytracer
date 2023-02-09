@@ -11,7 +11,11 @@ use crate::{
 };
 
 use image::{ImageBuffer, RgbImage};
-use texture::{checker::Checker, solid_color::SolidColor};
+use texture::{
+    checker::Checker,
+    perlin::{NoiseTexture, Perlin},
+    solid_color::SolidColor,
+};
 
 use std::{fs::File, process::exit, rc::Rc};
 
@@ -24,17 +28,22 @@ fn two_spheres() -> HittableList {
         odd: Rc::new(SolidColor::new(0.2, 0.3, 0.1)),
         even: Rc::new(SolidColor::new(0.9, 0.9, 0.9)),
     });
-    let mat1 = Rc::new(Lambertian { albedo: checker });
+    let pertext = Rc::new(NoiseTexture {
+        noise: Perlin::new(),
+        scale: 4.,
+    });
+    let _mat1 = Rc::new(Lambertian { albedo: checker });
+    let mat2 = Rc::new(Lambertian { albedo: pertext });
 
     world.add(sphere::Sphere {
-        center: Vec3::new(0., -10., 0.),
-        r: 10.,
-        mat_ptr: mat1.clone(),
+        center: Vec3::new(0., -1000., 0.),
+        r: 1000.,
+        mat_ptr: mat2.clone(),
     });
     world.add(sphere::Sphere {
-        center: Vec3::new(0., 10., 0.),
-        r: 10.,
-        mat_ptr: mat1,
+        center: Vec3::new(0., 2., 0.),
+        r: 2.,
+        mat_ptr: mat2,
     });
 
     world
